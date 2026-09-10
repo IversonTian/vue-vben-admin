@@ -253,8 +253,6 @@ async function loadLibraryPlugins(
   ]);
 }
 
-export { viteCssLayerPlugin } from './css-layer';
-
 export {
   loadApplicationPlugins,
   loadLibraryPlugins,

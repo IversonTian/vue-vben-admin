@@ -5,22 +5,47 @@ import { defineComponent, h, nextTick } from 'vue';
 
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
-// form-ui 是独立包，element-plus 是应用层依赖；测试直接解析 .pnpm 虚拟存储中的真实实现
-// @ts-expect-error - 深路径 import 绕过包解析，类型声明缺失可预期
-import {
-  ElInput,
-  ElTreeSelect,
-} from '../../../../../node_modules/.pnpm/element-plus@2.14.5_vue@3.5.41_typescript@6.0.3_/node_modules/element-plus/es/index.mjs';
 import { COMPONENT_MAP, setupVbenForm } from '../src/config';
 import { useVbenForm } from '../src/use-vben-form';
+import { TestInput } from './benchmark-fixtures';
+
+// form-ui 是独立包，不依赖任何应用层 UI 库；input 桩复用本目录已有的 TestInput
+// fixture，TreeSelect 桩额外模拟真实 UI 库打开弹层时读取 form.nodeName 的行为
+// （issue #8214 的崩溃路径）：若 name 泄漏到原生控件，form.nodeName 会被同名
+// 表单控件劫持而不再是 'FORM'
+const StubTreeSelect = defineComponent({
+  name: 'StubTreeSelect',
+  inheritAttrs: false,
+  props: {
+    data: { type: null, default: () => [] },
+    modelValue: { type: null, default: undefined },
+  },
+  setup(_, { attrs }) {
+    return () =>
+      h(
+        'div',
+        {
+          class: 'stub-select__wrapper',
+          onClick: (event: Event) => {
+            const form = (event.target as HTMLElement).closest('form');
+            capturedFormNodeNameOnOpen = form
+              ? Reflect.get(form, 'nodeName')
+              : undefined;
+          },
+        },
+        [h('input', attrs)],
+      );
+  },
+});
 
 const wrappers: VueWrapper[] = [];
 
-// 探针：记录 ElTreeSelect 实际收到的 props/attrs 键
+// 探针：记录 TreeSelect 实际收到的 props/attrs 键
 let capturedTreeSelectKeys: string[] = [];
 let capturedTreeSelectNodeName: unknown;
 let capturedTreeSelectNameValue: unknown;
 let capturedDeclaredName: unknown;
+let capturedFormNodeNameOnOpen: unknown;
 
 // 声明 name 为语义 prop 的探针组件：验证 componentProps.name 不被剥离
 const DeclaredNameComponent = defineComponent({
@@ -41,7 +66,7 @@ const ProbeTreeSelect = defineComponent({
     capturedTreeSelectKeys = [...Object.keys(props), ...Object.keys(attrs)];
     capturedTreeSelectNodeName = Reflect.get(attrs, 'nodeName');
     capturedTreeSelectNameValue = Reflect.get(attrs, 'name');
-    return () => h(ElTreeSelect, { ...props, ...attrs });
+    return () => h(StubTreeSelect, { ...props, ...attrs });
   },
 });
 
@@ -60,6 +85,7 @@ afterEach(() => {
   capturedTreeSelectNodeName = undefined;
   capturedTreeSelectNameValue = undefined;
   capturedDeclaredName = undefined;
+  capturedFormNodeNameOnOpen = undefined;
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
@@ -78,7 +104,7 @@ describe('issue #8214: form field named nodeName crashes TreeSelect render', () 
           fieldName: 'parentId',
         },
         {
-          component: ElInput,
+          component: TestInput,
           fieldName: 'nodeName',
         },
       ],
@@ -102,12 +128,14 @@ describe('issue #8214: form field named nodeName crashes TreeSelect render', () 
     expect(consoleError).not.toHaveBeenCalled();
 
     // 打开 TreeSelect 弹层：issue #8214 的崩溃发生在弹层 floating 定位
-    // （getNodeName 读取被劫持的 form.nodeName）阶段，此处验证完整打开流程无错
-    await wrapper.find('.el-select__wrapper').trigger('click');
+    // （getNodeName 读取被劫持的 form.nodeName）阶段；stub 在点击时同样读取
+    // form.nodeName，若 name 泄漏到原生控件，此处会拿到控件元素而非 'FORM'
+    await wrapper.find('.stub-select__wrapper').trigger('click');
     await flushPromises();
     await nextTick();
     expect(renderError).toBeUndefined();
     expect(consoleError).not.toHaveBeenCalled();
+    expect(capturedFormNodeNameOnOpen).toBe('FORM');
 
     // 原生控件上不应存在 name="nodeName"：<input name="nodeName"> 会劫持
     // form.nodeName 访问器（issue #8214 的根因）

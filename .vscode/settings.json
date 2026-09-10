@@ -105,7 +105,6 @@
     "**/bower_components": true,
     "**/.turbo": true,
     "**/.idea": true,
-    "**/.vitepress": true,
     "**/tmp": true,
     "**/.git": true,
     "**/.svn": true,
@@ -145,7 +144,6 @@
     "**/.gitignore": true,
     "**/.svn": true,
     "**/.DS_Store": true,
-    "**/.vitepress/cache": true,
     "**/.idea": true,
     "**/.vscode": false,
     "**/.yarn": true,
@@ -214,7 +212,6 @@
 
   "i18n-ally.localesPaths": [
     "packages/locales/src/langs",
-    "playground/src/locales/langs",
     "apps/*/src/locales/langs"
   ],
   "i18n-ally.pathMatcher": "{locale}/{namespace}.{ext}",

@@ -87,14 +87,14 @@ async function searchAndExpect(keyword: string, expectedCount: number) {
   });
 }
 
-// Mimics the antdv-next adapter registration:
+// Mimics a third-party adapter registration:
 //   IconPicker: withDefaultPlaceholder(IconPicker, 'select', {
 //     iconSlot: 'addonAfter',
 //     inputComponent: Input,
 //     modelValueProp: 'value',
 //   })
-const AntdvNextLikeInput = defineComponent({
-  name: 'AntdvNextLikeInput',
+const ThirdPartyLikeInput = defineComponent({
+  name: 'ThirdPartyLikeInput',
   props: {
     value: { type: String, default: '' },
   },
@@ -103,7 +103,7 @@ const AntdvNextLikeInput = defineComponent({
     return () =>
       h('input', {
         ...attrs,
-        class: ['antdv-next-like-input', attrs.class as string],
+        class: ['third-party-like-input', attrs.class as string],
         value: props.value,
         onInput: (event: Event) => {
           const target = event.target as HTMLInputElement;
@@ -158,7 +158,7 @@ describe('icon-picker.vue', () => {
       attachTo: document.body,
       props: {
         icons: STATIC_ICONS,
-        inputComponent: markRaw(AntdvNextLikeInput),
+        inputComponent: markRaw(ThirdPartyLikeInput),
         modelValueProp: 'value',
         prefix: '',
       },
@@ -180,7 +180,7 @@ describe('icon-picker.vue', () => {
       attachTo: document.body,
       props: {
         icons: STATIC_ICONS,
-        inputComponent: markRaw(AntdvNextLikeInput),
+        inputComponent: markRaw(ThirdPartyLikeInput),
         modelValueProp: 'value',
         prefix: '',
         'onUpdate:value': onUpdateValue,

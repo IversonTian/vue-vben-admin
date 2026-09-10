@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'tsdown';
 
 const rootDir = dirname(fileURLToPath(import.meta.url));
-const loadingAssets = ['default-loading-antd.html', 'default-loading.html'];
+const loadingAssets = ['default-loading.html'];
 
 export default defineConfig({
   clean: true,

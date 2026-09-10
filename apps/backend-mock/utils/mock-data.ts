@@ -380,21 +380,6 @@ export const MOCK_MENU_LIST = [
           title: 'Github',
         },
       },
-      {
-        id: 903,
-        pid: 9,
-        name: 'VbenAntdv',
-        path: '/vben-admin/antdv',
-        component: 'IFrameView',
-        type: 'link',
-        status: 0,
-        meta: {
-          icon: 'carbon:hexagon-vertical-solid',
-          badgeType: 'dot',
-          link: 'https://ant.vben.pro',
-          title: 'demos.vben.antdv',
-        },
-      },
     ],
   },
   {
