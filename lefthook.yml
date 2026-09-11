@@ -61,6 +61,12 @@ pre-commit:
       glob: '*.{vue,css,less,scss}'
       run: pnpm exec stylelint --fix {staged_files}
       stage_fixed: true
+    - name: cspell
+      glob: '{.ruler,.claude,docs}/**/*.md'
+      run: pnpm exec cspell lint --no-progress --no-summary {staged_files}
+    - name: checkDocsLinks
+      glob: '{.ruler,.claude,docs}/**/*.md,CLAUDE.md'
+      run: pnpm check:docs -- {staged_files}
     - name: checkType
       run: pnpm check:type
 
